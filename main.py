@@ -12,13 +12,11 @@ driver.get(LOGIN_PANEL)
 
 
 def memrise_login():
-
     """ Logs into memrise account, only need to provide the username and password"""
     username = LoginInformation().username()
     password = LoginInformation().password()
     username_input = driver.find_element_by_name('username')
     password_input = driver.find_element_by_name('password')
-
 
     username_input.send_keys(username)
     time.sleep(1)
@@ -54,5 +52,46 @@ time.sleep(5)
 current_url = driver.current_url
 
 # words dictionary ->
-words_dictionary = WordHarvestClass(current_url).get_information()
-print(words_dictionary)
+try:
+    words_dictionary = WordHarvestClass(current_url).get_information()
+    print('Words copied successfully')
+except Exception as e:
+    print('Error:')
+    print(e)
+time.sleep(5)
+driver.find_element_by_xpath('//a[contains(text(),\'Continue learning\')]').click()
+time.sleep(5)
+
+"""
+Next line types the category header -> 
+PS! Need to split the header and take in the first sentence (header)
+"""
+state = True
+while state:
+    category = driver.find_element_by_xpath("//body/div[@id='__next']/div[2]/div[1]/div[1]/div[1]/div[1]/div[1]/div[4]/div[1]/div[1]").text
+    if category == 'Type the correct translation':
+        """Selenium only need to type the correct translation into input box and click enter"""
+
+        print('DETECTED: Type the correct translation')
+
+        # takes the word
+        aWord = driver.find_element_by_xpath("//body/div[@id='__next']/div[2]/div[1]/div[1]/div[1]/div[1]/div[1]/div[4]/div[1]/div[2]/div[1]/div[1]").text
+        # takes the word translation
+        bWord = words_dictionary[aWord]
+        # selects the input box
+        input_box = driver.find_element_by_xpath("//body/div[@id='__next']/div[2]/div[1]/div[1]/div[1]/div[1]/div[1]/div[4]/div[1]/div[2]/div[1]/div[2]/div[1]/input[1]")
+        # sends the answer into input box
+        input_box.send_keys(bWord)
+
+    elif category == 'Choose the correct translation':
+        print('DETECTED: Choose the correct translation')
+
+    else:
+        """ There's nothing to do with Lesson card, script will skip it"""
+
+        print('DETECTED: Lesson card')
+        print('Skipping.')
+        # Clicks the Next button ->
+        driver.find_element_by_xpath("//body/div[@id='__next']/div[2]/div[1]/div[1]/div[1]/div[1]/div[1]/div[5]/button[1]").click()
+
+    time.sleep(5)
