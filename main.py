@@ -10,7 +10,8 @@ driver = webdriver.Chrome(PATH)
 LOGIN_PANEL = 'https://www.memrise.com/login'
 driver.get(LOGIN_PANEL)
 
-
+course_lesson = 'S1 Insight Upper intermediate'
+course_unit = '5'
 def memrise_login():
     """ Logs into memrise account, only need to provide the username and password"""
     username = LoginInformation().username()
@@ -47,10 +48,11 @@ def console_log(sentence):
 memrise_login()
 time.sleep(5)
 
-lesson_pick('S1 Insight Upper intermediate')
+lesson_pick(course_lesson)
+
 time.sleep(5)
 # course number
-course_pick('5')
+course_pick(course_unit)
 
 time.sleep(5)
 # current url ->
@@ -59,7 +61,7 @@ current_url = driver.current_url
 # words dictionary ->
 try:
     words_dictionary = WordHarvestClass(current_url).get_information()
-    print('Words copied successfully')
+    console_log('Words copied to dictionary successfully')
 except Exception as e:
     print('Error:')
     print(e)
@@ -91,19 +93,17 @@ while state:
         if category == 'Type the correct translation':
             """Selenium only need to type the correct translation into input box and click enter"""
 
-            print('DETECTED: Type the correct translation')
 
-            # takes the word
             aWord = driver.find_element_by_xpath("//body/div[@id='__next']/div[2]/div[1]/div[1]/div[1]/div[1]/div[1]/div[4]/div[1]/div[2]/div[1]/div[1]").text
             # takes the word translation
             bWord = words_dictionary[aWord]
             # selects the input box
             input_box = driver.find_element_by_xpath("//body/div[@id='__next']/div[2]/div[1]/div[1]/div[1]/div[1]/div[1]/div[4]/div[1]/div[2]/div[1]/div[2]/div[1]/input[1]")
             # sends the answer into input box
+            console_log(F'SEARCHED WORD: {aWord}; ANSWER: {bWord}')
             input_box.send_keys(bWord)
 
         elif category == 'Choose the correct translation':
-            print('DETECTED: Choose the correct translation')
 
             # otsitav sõna ->
             searched_word = driver.find_element_by_xpath("//body/div[@id='__next']/div[2]/div[1]/div[1]/div[1]/div[1]/div[1]/div[4]/div[1]/div[2]/div[1]/div[1]").text
@@ -115,7 +115,7 @@ while state:
                 list = ctct1.split('\n')
                 list.insert(0, '')
                 answer = word_check(searched_word)
-                print(f'SEARCHED WORD: {searched_word}\nANSWER: {answer}')
+                console_log(f'SEARCHED WORD: {searched_word}\nANSWER: {answer}')
                 choice_answer = list.index(answer) - 1
 
                 site = driver.find_element_by_xpath('//html')
@@ -138,15 +138,14 @@ while state:
                     number = list.index(answer_splitted[i])
                     site.send_keys(str(number))
                     time.sleep(1)
-                print(f'SEARCHED WORD: {searched_word}\nANSWER: {answer}')
+                console_log(f'SEARCHED WORD: {searched_word}\nANSWER: {answer}')
 
 
 
         else:
             """ There's nothing to do with Lesson card, script will skip it"""
 
-            print('DETECTED: Lesson card')
-            print('Skipping.')
+            console_log('Lesson card.. Skipping.')
             # Clicks the Next button ->
             driver.find_element_by_xpath("//body/div[@id='__next']/div[2]/div[1]/div[1]/div[1]/div[1]/div[1]/div[5]/button[1]").click()
 
