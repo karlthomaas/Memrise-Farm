@@ -10,8 +10,9 @@ driver = webdriver.Chrome(PATH)
 LOGIN_PANEL = 'https://www.memrise.com/login'
 driver.get(LOGIN_PANEL)
 
-course_lesson = 'S1 Insight Upper intermediate'
-course_unit = '5'
+course_lesson = 'B2 elective course Secunda'
+
+course_unit = '2'
 def memrise_login():
     """ Logs into memrise account, only need to provide the username and password"""
     username = LoginInformation().username()
@@ -43,7 +44,11 @@ def console_log(sentence):
     sentence_length = len(sentence)
     print('-' *sentence_length)
     print(sentence)
-    print('-' *sentence_length)
+    
+def word_counter(dict):
+    words_count = len(dict)
+    print(f'{words_count  } Words is in this lessson. ')
+        
 
 memrise_login()
 time.sleep(5)
@@ -62,6 +67,7 @@ current_url = driver.current_url
 try:
     words_dictionary = WordHarvestClass(current_url).get_information()
     console_log('Words copied to dictionary successfully')
+    word_counter(words_dictionary)
 except Exception as e:
     print('Error:')
     print(e)
@@ -77,18 +83,23 @@ def word_check(word):
                 return key
 
 time.sleep(5)
-driver.find_element_by_xpath('//a[contains(text(),\'Continue learning\')]').click()
-time.sleep(5)
 
-"""
-Next line types the category header -> 
-PS! Need to split the header and take in the first sentence (header)
-"""
+""" 
+If you haven't started learning memrise words yet, then #1 activates.
+If you want to continue learning memrise words, then #2 activates.
+ """
+try:
+    driver.find_element_by_xpath("//a[contains(text(),'Learn these words')]").click()  # 1
+except Exception as e:
+    driver.find_element_by_xpath('//a[contains(text(),\'Continue learning\')]').click()  # 2
+
+time.sleep(5)
 state = True
 
-answering_cooldown = 2
+answering_cooldown = 4
 while state:
     try:
+
         category = driver.find_element_by_xpath("//body/div[@id='__next']/div[2]/div[1]/div[1]/div[1]/div[1]/div[1]/div[4]/div[1]/div[1]").text
         if category == 'Type the correct translation':
             """Selenium only need to type the correct translation into input box and click enter"""
@@ -140,11 +151,9 @@ while state:
                     time.sleep(1)
                 console_log(f'SEARCHED WORD: {searched_word}\nANSWER: {answer}')
 
-
-
         else:
-            """ There's nothing to do with Lesson card, script will skip it"""
 
+            """ There's nothing to do with Lesson card, script will skip it"""
             console_log('Lesson card.. Skipping.')
             # Clicks the Next button ->
             driver.find_element_by_xpath("//body/div[@id='__next']/div[2]/div[1]/div[1]/div[1]/div[1]/div[1]/div[5]/button[1]").click()
@@ -155,5 +164,13 @@ while state:
         print('Ran out of words. Restarting!')
         driver.get(current_url)
         time.sleep(2)
-        driver.find_element_by_xpath('//a[contains(text(),\'Continue learning\')]').click()
+        """
+        
+        """
+        try:
+            driver.find_element_by_xpath("//a[contains(text(),'Learn these words')]").click()  # 1
+
+        except Exception as e:
+            driver.find_element_by_xpath('//a[contains(text(),\'Continue learning\')]').click()  # 2
+
         time.sleep(2)
