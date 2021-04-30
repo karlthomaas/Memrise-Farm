@@ -11,8 +11,8 @@ LOGIN_PANEL = 'https://www.memrise.com/login'
 driver.get(LOGIN_PANEL)
 
 course_lesson = 'B2 elective course Secunda'
+course_unit = '1'
 
-course_unit = '2'
 def memrise_login():
     """ Logs into memrise account, only need to provide the username and password"""
     username = LoginInformation().username()
@@ -24,27 +24,33 @@ def memrise_login():
     time.sleep(1)
     password_input.send_keys(password)
     time.sleep(1)
-    # login
+    # login button
     driver.find_element_by_xpath('//body/div[@id="__next"]/div[1]/div[2]/div[1]/form[1]/div[3]/button[1]/div[1]').click()
 
 
 def lesson_pick(lesson):
     try:
+        # closes the ad
         driver.find_element_by_class_name('close').click()
     except Exception as e:
         ...
     time.sleep(5)
+    # clicks on lesson
     driver.find_element_by_xpath(f"//a[contains(text(),'{lesson}')]").click()
 
 
+# picks the course
 def course_pick(course):
     driver.find_element_by_xpath(f'//body/div[3]/div[4]/div[1]/div[1]/div[1]/div[2]/a[{course}]/div[2]').click()
 
+
+# prints text into terminal
 def console_log(sentence):
     sentence_length = len(sentence)
-    print('-' *sentence_length)
+    print('-' * sentence_length)
     print(sentence)
-    
+
+
 def word_counter(dict):
     words_count = len(dict)
     print(f'{words_count  } Words is in this lessson. ')
@@ -60,13 +66,15 @@ time.sleep(5)
 course_pick(course_unit)
 
 time.sleep(5)
-# current url ->
+# takes the current url, so it can go back after doing all tasks
 current_url = driver.current_url
 
 # words dictionary ->
 try:
+    # copies all words into dictionary, using another class in other file
     words_dictionary = WordHarvestClass(current_url).get_information()
     console_log('Words copied to dictionary successfully')
+    # count's the words
     word_counter(words_dictionary)
 except Exception as e:
     print('Error:')
@@ -96,7 +104,7 @@ except Exception as e:
 time.sleep(5)
 state = True
 
-answering_cooldown = 4
+answering_cooldown = 2
 while state:
     try:
 
@@ -111,7 +119,7 @@ while state:
             # selects the input box
             input_box = driver.find_element_by_xpath("//body/div[@id='__next']/div[2]/div[1]/div[1]/div[1]/div[1]/div[1]/div[4]/div[1]/div[2]/div[1]/div[2]/div[1]/input[1]")
             # sends the answer into input box
-            console_log(F'SEARCHED WORD: {aWord}; ANSWER: {bWord}')
+            console_log(F'SEARCHED WORD: {aWord}\nANSWER: {bWord}')
             input_box.send_keys(bWord)
 
         elif category == 'Choose the correct translation':
