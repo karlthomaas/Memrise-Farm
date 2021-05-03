@@ -2,6 +2,7 @@ from selenium import webdriver
 from WordsHarvest import WordHarvestClass
 from config import LoginInformation
 import time
+import re
 
 # chromedriver.exe destination
 PATH = r'C:\Program Files (x86)\chromedriver.exe'
@@ -12,6 +13,11 @@ driver.get(LOGIN_PANEL)
 
 course_lesson = 'B2 elective course Secunda'
 course_unit = '1'
+
+# "State" starts farming by learning new words ->
+# "State2" starts farming by renewing new words ->
+state = False
+state2 = False
 
 
 def memrise_login():
@@ -59,8 +65,8 @@ def console_log(sentence):
 
 def word_counter(dictionary):
     words_count = len(dictionary)
-    print(f'{words_count  } Words is in this lessson. ')
-        
+    print(f'{words_count} Words is in this lessson. ')
+
 
 memrise_login()
 time.sleep(5)
@@ -98,106 +104,146 @@ def word_check(word):
                 return key
 
 
+def differenct_practises():
+    try:
+        # clicks "Learn these words" ->
+        driver.find_element_by_xpath("//a[contains(text(),'Learn these words')]").click()  # 1
+        return '1'
+    except Exception:
+        try:
+            # clicks "Continue learning" ->
+            driver.find_element_by_xpath('//a[contains(text(),\'Continue learning\')]').click()  # 2
+            return '1'
+        except Exception:
+            try:
+                # clicks Review words (2 step clicking) ->
+                # opens menu and clicks Review words
+                driver.find_element_by_xpath(
+                    "//body/div[3]/div[4]/div[1]/div[1]/div[1]/div[3]/div[1]/button[1]").click()
+                driver.find_element_by_xpath(
+                    "//body/div[3]/div[4]/div[1]/div[1]/div[1]/div[3]/div[1]/ul[1]/li[1]/a[1]").click()
+                return '2'
+            except Exception:
+                ...
+
+
 time.sleep(5)
 
 """ 
 If you haven't started learning memrise words yet, then #1 activates.
 If you want to continue learning memrise words, then #2 activates.
  """
-try:
-    driver.find_element_by_xpath("//a[contains(text(),'Learn these words')]").click()  # 1
-except Exception as e:
-    driver.find_element_by_xpath('//a[contains(text(),\'Continue learning\')]').click()  # 2
+
+state = differenct_practises()
 
 time.sleep(5)
-state = True
 
 answering_cooldown = 2
-while state:
-    try:
-        category_xpath = "//body/div[@id='__next']/div[2]/div[1]/div[1]/div[1]/div[1]/div[1]/div[4]/div[1]/div[1]"
-        category = driver.find_element_by_xpath(category_xpath).text
-        if category == 'Type the correct translation':
-            """Selenium only need to type the correct translation into input box and click enter"""
-
-            aWord_xpath = "//body/div[@id='__next']/div[2]/div[1]/div[1]/div[1" \
-                          "]/div[1]/div[1]/div[4]/div[1]/div[2]/div[1]/div[1]"
-            aWord = driver.find_element_by_xpath(aWord_xpath).text
-            # takes the word translation
-            bWord = words_dictionary[aWord]
-
-            # selects the input box
-            input_box_xpath = "//body/div[@id='__next']/div[2]/div[1]/div[1]/div[1]/div[1" \
-                              "]/div[1]/div[4]/div[1]/div[2]/div[1]/div[2]/div[1]/input[1]"
-
-            input_box = driver.find_element_by_xpath(input_box_xpath)
-            # sends the answer into input box
-            console_log(F'SEARCHED WORD: {aWord}\nANSWER: {bWord}')
-            input_box.send_keys(bWord)
-
-        elif category == 'Choose the correct translation':
-
-            # otsitav sõna ->
-            searched_word_xpath = "//body/div[@id='__next']/div[2]/div[1]/div[1]/div" \
-                                  "[1]/div[1]/div[1]/div[4]/div[1]/div[2]/div[1]/div[1]"
-
-            searched_word = driver.find_element_by_xpath(searched_word_xpath).text
-
-            # Prints out the valikvastused ->
-            ctct1_xpath = "//body/div[@id='__next']/div[2]/div[1]/div[1]/div" \
-                          "[1]/div[1]/div[1]/div[4]/div[1]/div[2]/div[1]/div[2]"
-
-            ctct1 = driver.find_element_by_xpath(ctct1_xpath).text
-
-            if ctct1[0] == '1':
-                nimekiri = ctct1.split('\n')
-                nimekiri.insert(0, '')
-                answer = word_check(searched_word)
-                console_log(f'SEARCHED WORD: {searched_word}\nANSWER: {answer}')
-                choice_answer = nimekiri.index(answer) - 1
-
-                site = driver.find_element_by_xpath('//html')
-                site.send_keys(nimekiri[choice_answer])
-            else:
-                site = driver.find_element_by_xpath('//html')
-                # valiksõnad input boxi all
-                nimekiri = ctct1.split('\n')
-                nimekiri.insert(0, '')
-
-                answer = word_check(searched_word)
-                # vastus tehtud eraldi juppideks
-                answer_splitted = answer.split(' ')
-
-                # activates the number answering
-                site.send_keys('1')
-                # nii mitu korda käib, kuniks sõna on täiesti läbi
-                for i in range(len(answer_splitted)):
-
-                    number = nimekiri.index(answer_splitted[i])
-                    site.send_keys(str(number))
-                    time.sleep(1)
-                console_log(f'SEARCHED WORD: {searched_word}\nANSWER: {answer}')
-
-        else:
-
-            """ There's nothing to do with Lesson card, script will skip it"""
-            console_log('Lesson card.. Skipping.')
-            # Clicks the Next button ->
-            next_button_xpath = "//body/div[@id='__next']/div[2]/div[1]/div[1]/div[1]/div[1]/div[1]/div[5]/button[1]"
-            driver.find_element_by_xpath(next_button_xpath).click()
-
-        time.sleep(answering_cooldown)
-    except Exception as e:
-        print('Ran out of words. Restarting!')
-        driver.get(current_url)
-        time.sleep(2)
-        """
-        
-        """
+if state == '1':
+    state_boolean = True
+    print("State loop activated")
+    while state_boolean:
         try:
-            driver.find_element_by_xpath("//a[contains(text(),'Learn these words')]").click()  # 1
+            category_xpath = "//body/div[@id='__next']/div[2]/div[1]/div[1]/div[1]/div[1]/div[1]/div[4]/div[1]/div[1]"
+            category = driver.find_element_by_xpath(category_xpath).text
+
+            if category == 'Type the correct translation':
+                """Selenium only need to type the correct translation into input box and click enter"""
+
+                aWord_xpath = "//body/div[@id='__next']/div[2]/div[1]/div[1]/div[1" \
+                              "]/div[1]/div[1]/div[4]/div[1]/div[2]/div[1]/div[1]"
+                aWord = driver.find_element_by_xpath(aWord_xpath).text
+                # takes the word translation
+                bWord = words_dictionary[aWord]
+
+                # selects the input box
+                input_box_xpath = "//body/div[@id='__next']/div[2]/div[1]/div[1]/div[1]/div[1" \
+                                  "]/div[1]/div[4]/div[1]/div[2]/div[1]/div[2]/div[1]/input[1]"
+
+                input_box = driver.find_element_by_xpath(input_box_xpath)
+                # sends the answer into input box
+                console_log(F'SEARCHED WORD: {aWord}\nANSWER: {bWord}')
+                input_box.send_keys(bWord)
+
+            elif category == 'Choose the correct translation':
+
+                # otsitav sõna ->
+                searched_word_xpath = "//body/div[@id='__next']/div[2]/div[1]/div[1]/div" \
+                                      "[1]/div[1]/div[1]/div[4]/div[1]/div[2]/div[1]/div[1]"
+
+                searched_word = driver.find_element_by_xpath(searched_word_xpath).text
+
+                # Prints out the valikvastused ->
+                ctct1_xpath = "//body/div[@id='__next']/div[2]/div[1]/div[1]/div" \
+                              "[1]/div[1]/div[1]/div[4]/div[1]/div[2]/div[1]/div[2]"
+
+                ctct1 = driver.find_element_by_xpath(ctct1_xpath).text
+
+                if ctct1[0] == '1':
+                    nimekiri = ctct1.split('\n')
+                    nimekiri.insert(0, '')
+                    answer = word_check(searched_word)
+                    console_log(f'SEARCHED WORD: {searched_word}\nANSWER: {answer}')
+                    choice_answer = nimekiri.index(answer) - 1
+
+                    site = driver.find_element_by_xpath('//html')
+                    site.send_keys(nimekiri[choice_answer])
+                else:
+                    # todo sometimes bugs out and stays in picking loop
+
+                    site = driver.find_element_by_xpath('//html')
+                    # valiksõnad input boxi all
+                    nimekiri = ctct1.split('\n')
+                    nimekiri.insert(0, '')
+
+                    answer = word_check(searched_word)
+                    # vastus tehtud eraldi juppideks
+                    answer_splitted = answer.split(' ')
+
+                    # activates the number answering
+                    site.send_keys('1')
+                    # nii mitu korda käib, kuniks sõna on täiesti läbi
+                    for i in range(len(answer_splitted)):
+                        number = nimekiri.index(answer_splitted[i])
+                        site.send_keys(str(number))
+                        time.sleep(1)
+                    console_log(f'SEARCHED WORD: {searched_word}\nANSWER: {answer}')
+
+            else:
+
+                """ There's nothing to do with Lesson card, script will skip it"""
+                console_log('Lesson card.. Skipping.')
+                # Clicks the Next button ->
+                next_button_xpath = "//body/div[@id='__next']/div[2]/div[1]/div[1]/div[1]/div[1]/div[1]/div[5]/button[1]"
+                driver.find_element_by_xpath(next_button_xpath).click()
+
+            time.sleep(answering_cooldown)
+        except Exception as e:
+            print('Ran out of words. Restarting!')
+            driver.get(current_url)
+            time.sleep(2)
+            """
+
+            """
+            differenct_practises()
+
+            time.sleep(2)
+
+elif state == '2':
+    state_boolean = True
+    while state_boolean:
+        try:
+            time.sleep(2)
+            tekst = driver.find_element_by_xpath("/html[1]/body[1]/div[4]/div[3]/div[1]/div[1]/div[1]/div[1]/div[1]/div[1]").text
+            answer = word_check(tekst)
+            input_box = driver.find_element_by_xpath("/html[1]/body[1]/div[4]/div[3]/div[1]/div[1]/div[4]/input[1]")
+            input_box.send_keys(answer)
+            time.sleep(answering_cooldown)
+
 
         except Exception as e:
-            driver.find_element_by_xpath('//a[contains(text(),\'Continue learning\')]').click()  # 2
+            print('Ran out of words. Restarting!')
+            driver.get(current_url)
+            time.sleep(2)
+            differenct_practises()
 
-        time.sleep(2)
