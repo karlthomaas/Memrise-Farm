@@ -2,7 +2,6 @@ from selenium import webdriver
 from WordsHarvest import WordHarvestClass
 from config import LoginInformation
 import time
-import re
 
 # chromedriver.exe destination
 PATH = r'C:\Program Files (x86)\chromedriver.exe'
@@ -11,7 +10,7 @@ driver = webdriver.Chrome(PATH)
 LOGIN_PANEL = 'https://www.memrise.com/login'
 driver.get(LOGIN_PANEL)
 
-course_lesson = 'B2 elective course Secunda'
+course_lesson = '2021 P1 Insight'
 course_unit = '1'
 
 # "State" starts farming by learning new words ->
@@ -52,9 +51,9 @@ def lesson_pick(lesson):
 
 
 # picks the course
-def course_pick(course):
-    driver.find_element_by_xpath(f'//body/div[3]/div[4]/div[1]/div[1]/div[1]/div[2]/a[{course}]/div[2]').click()
-
+# def course_pick(course):
+#     driver.find_element_by_xpath(f'//body/div[3]/div[4]/div[1]/div[1]/div[1]/div[2]/a[{course}]/div[2]').click()
+#
 
 # prints text into terminal
 def console_log(sentence):
@@ -75,7 +74,7 @@ lesson_pick(course_lesson)
 
 time.sleep(5)
 # course number
-course_pick(course_unit)
+# course_pick(course_unit)
 
 time.sleep(5)
 # takes the current url, so it can go back after doing all tasks
@@ -86,6 +85,8 @@ try:
     # copies all words into dictionary, using another class in other file
     words_dictionary = WordHarvestClass(current_url).get_information()
     console_log('Words copied to dictionary successfully')
+    for key, value in words_dictionary.items():
+        print(f"{key}: {value}")
     # count's the words
     word_counter(words_dictionary)
 except Exception as e:
@@ -109,12 +110,12 @@ def differenct_practises():
         # clicks "Learn these words" ->
         driver.find_element_by_xpath("//a[contains(text(),'Learn these words')]").click()  # 1
         return '1'
-    except Exception:
+    except:
         try:
             # clicks "Continue learning" ->
             driver.find_element_by_xpath('//a[contains(text(),\'Continue learning\')]').click()  # 2
             return '1'
-        except Exception:
+        except:
             try:
                 # clicks Review words (2 step clicking) ->
                 # opens menu and clicks Review words
@@ -123,7 +124,7 @@ def differenct_practises():
                 driver.find_element_by_xpath(
                     "//body/div[3]/div[4]/div[1]/div[1]/div[1]/div[3]/div[1]/ul[1]/li[1]/a[1]").click()
                 return '2'
-            except Exception:
+            except:
                 ...
 
 
@@ -146,10 +147,9 @@ if state == '1':
         try:
             category_xpath = "//body/div[@id='__next']/div[2]/div[1]/div[1]/div[1]/div[1]/div[1]/div[4]/div[1]/div[1]"
             category = driver.find_element_by_xpath(category_xpath).text
-
+            print(category)
             if category == 'Type the correct translation':
                 """Selenium only need to type the correct translation into input box and click enter"""
-
                 aWord_xpath = "//body/div[@id='__next']/div[2]/div[1]/div[1]/div[1" \
                               "]/div[1]/div[1]/div[4]/div[1]/div[2]/div[1]/div[1]"
                 aWord = driver.find_element_by_xpath(aWord_xpath).text
@@ -166,7 +166,6 @@ if state == '1':
                 input_box.send_keys(bWord)
 
             elif category == 'Choose the correct translation':
-
                 # otsitav sõna ->
                 searched_word_xpath = "//body/div[@id='__next']/div[2]/div[1]/div[1]/div" \
                                       "[1]/div[1]/div[1]/div[4]/div[1]/div[2]/div[1]/div[1]"
@@ -223,7 +222,6 @@ if state == '1':
             driver.get(current_url)
             time.sleep(2)
             """
-
             """
             differenct_practises()
 
@@ -236,14 +234,17 @@ elif state == '2':
             time.sleep(2)
             tekst = driver.find_element_by_xpath("/html[1]/body[1]/div[4]/div[3]/div[1]/div[1]/div[1]/div[1]/div[1]/div[1]").text
             answer = word_check(tekst)
-            input_box = driver.find_element_by_xpath("/html[1]/body[1]/div[4]/div[3]/div[1]/div[1]/div[4]/input[1]")
-            input_box.send_keys(answer)
-            time.sleep(answering_cooldown)
-
+            if answer != 'None':
+                input_box = driver.find_element_by_xpath("/html[1]/body[1]/div[4]/div[3]/div[1]/div[1]/div[4]/input[1]")
+                input_box.send_keys(answer)
+                time.sleep(answering_cooldown)
+            else:
+                skip_button = "//body/div[@id='gardening-area']/div[@id='central-area']/div[@id='boxes']/div[1]/div[1]/button[1]"
+                driver.find_element_by_xpath(skip_button).click()
+                time.sleep(answering_cooldown)
 
         except Exception as e:
             print('Ran out of words. Restarting!')
             driver.get(current_url)
             time.sleep(2)
             differenct_practises()
-
