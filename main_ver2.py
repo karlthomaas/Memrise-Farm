@@ -126,9 +126,7 @@ class MemriseScript:
                         # clicks Review words (2 step clicking) ->
                         # opens menu and clicks Review words
                         self.driver.find_element_by_xpath(
-                            "//body/div[3]/div[4]/div[1]/div[1]/div[1]/div[3]/div[1]/button[1]").click()
-                        self.driver.find_element_by_xpath(
-                            "//body/div[3]/div[4]/div[1]/div[1]/div[1]/div[3]/div[1]/ul[1]/li[1]/a[1]").click()
+                            "//body/div[3]/div[4]/div[1]/div[1]/div[1]/div[1]/div[3]/a[3]").click()
                         return '2'
                     except:
                         ...
@@ -247,6 +245,8 @@ class MemriseScript:
             except Exception as e:
                 print('Ran out of words. Restarting!')
                 self.driver.get(self.current_url)
+                self.driver.find_element_by_xpath(
+                    "//body/div[3]/div[4]/div[1]/div[1]/div[1]/div[1]/div[3]/a[3]").click()
                 time.sleep(2)
 
     def run(self):
