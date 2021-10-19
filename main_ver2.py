@@ -28,15 +28,22 @@ class MemriseScript:
         self.current_url = ''
         self.words_dictionary = {}
 
-    """ Logs into memrise account, using username and password from config.py file"""
+    """Function which is responsible for returning elem by xpath"""
+    def EC_xpath(self, xpath):
+        elem = WebDriverWait(self.driver, self.wait_timer).until(
+                EC.presence_of_element_located((By.XPATH, xpath)))
+        return elem
 
-    # def EC_xpath(self, xpath):
-    #     elem = WebDriverWait(self.driver, self.wait_timer).until(
-    #             EC.presence_of_element_located((By.XPATH, xpath)))
-    #
-    # def EC_name(self, name):
-    #     elem = WebDriverWait(self.driver, self.wait_timer).until(
-    #         EC.presence_of_element_located((By.NAME, name)))
+    """Function which is responsible for returning elem by name"""
+    def EC_name(self, name):
+        elem = WebDriverWait(self.driver, self.wait_timer).until(
+            EC.presence_of_element_located((By.NAME, name)))
+        return elem
+
+    def EC_class_name(self, name):
+        elem = WebDriverWait(self.driver, self.wait_timer).until(
+            EC.presence_of_element_located((By.CLASS_NAME, name)))
+        return elem
 
     def memrise_login(self):
         # username = LoginInformation().username()
@@ -45,21 +52,14 @@ class MemriseScript:
         try:
 
             print('> Inserting username')
-            username_input = WebDriverWait(self.driver, self.wait_timer).until(
-                EC.presence_of_element_located((By.NAME, 'username')))
-            username_input.send_keys(self.username)
+            username_input = self.EC_name('username').send_keys(self.username)
 
-            print('> Inserting password')
-            password_input = WebDriverWait(self.driver, self.wait_timer).until(
-                EC.presence_of_element_located((By.NAME, 'password')))
-            password_input.send_keys(self.password)
+            print('> Insertting password')
+            password_input = self.EC_name('password').send_keys(self.password)
 
-            print('> Locating login button')
+            print('> Clicking login!')
             login_xpath = '//body/div[@id="__next"]/div[1]/div[2]/div[1]/form[1]/div[3]/button[1]/div[1]'
-            login_button = WebDriverWait(self.driver, self.wait_timer).until(
-                EC.presence_of_element_located((By.XPATH, login_xpath)))
-            print('> Clicking login button')
-            login_button.click()
+            login_button = self.EC_xpath(login_xpath).click()
 
         except Exception as e:
             print(f'Memrise_login error!\nError: {e}')
@@ -67,9 +67,7 @@ class MemriseScript:
 
     def ad_close(self):
         try:
-            element = WebDriverWait(self.driver, self.wait_timer).until(
-                EC.presence_of_element_located((By.CLASS_NAME, 'close')))
-            element.click()
+            ad_button = self.EC_class_name('close').click()
             print('> Closed ad!')
 
         except Exception as e:
@@ -78,19 +76,17 @@ class MemriseScript:
     def lesson_pick(self):
         try:
             print(f'Clicking lesson: {self.course_lesson}!')
-            element = WebDriverWait(self.driver, self.wait_timer).until(
-                EC.presence_of_element_located((By.XPATH, f"//a[contains(text(),'{self.course_lesson}')]")))
-            element.click()
+            lesson_xpath = f"//a[contains(text(),'{self.course_lesson}')]"
+            lesson_button = self.EC_xpath(lesson_xpath).click()
+
         except Exception as e:
             print(f'> Lesson pick failed:\nError:{e}')
 
     def course_pick(self):
         try:
             print(f'Clicking course: {self.course_unit}!')
-            xpath = f'//body/div[3]/div[4]/div[1]/div[1]/div[1]/div[2]/a[{self.course_unit}]'
-            element = WebDriverWait(self.driver, self.wait_timer).until(
-                EC.presence_of_element_located((By.XPATH, xpath)))
-            element.click()
+            course_xpath = f'//body/div[3]/div[4]/div[1]/div[1]/div[1]/div[2]/a[{self.course_unit}]'
+            course_button = self.EC_xpath(course_xpath).click()
         except Exception as e:
             print(f'> Lesson pick failed:\nError:{e}')
 
@@ -103,6 +99,7 @@ class MemriseScript:
         words_count = len(dictionary)
         print(f'{words_count} Words is in this lessson. ')
 
+    """Function, which saves all of the required words from memrise page"""
     def word_dictionary(self):
         try:
 
@@ -130,24 +127,23 @@ class MemriseScript:
 
         try:
             # clicks "Learn these words" ->
-            self.driver.find_element_by_xpath("//a[contains(text(),'Learn these words')]").click()  # 1
+            self.EC_xpath("//a[contains(text(),'Learn these words')]").click()
             return '1'
         except:
             try:
                 # clicks "Continue learning" ->
-                self.driver.find_element_by_xpath('//a[contains(text(),\'Continue learning\')]').click()  # 2
+                self.EC_xpath('//a[contains(text(),\'Continue learning\')]').click()
                 return '1'
             except:
                 try:
                     # clicks "Continue learning" ->
-                    self.driver.find_element_by_xpath('//a[contains(text(),\'Learn\')]').click()  # 2
+                    self.EC_xpath('//a[contains(text(),\'Learn\')]').click()
                     return '1'
                 except:
                     try:
                         # clicks Review words (2 step clicking) ->
                         # opens menu and clicks Review words
-                        self.driver.find_element_by_xpath(
-                            "//body/div[3]/div[4]/div[1]/div[1]/div[1]/div[1]/div[3]/a[3]").click()
+                        self.EC_xpath("//body/div[3]/div[4]/div[1]/div[1]/div[1]/div[1]/div[3]/a[3]").click()
                         return '2'
                     except:
                         ...
