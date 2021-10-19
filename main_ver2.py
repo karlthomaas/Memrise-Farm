@@ -331,10 +331,10 @@ class MemriseScript:
                 self.state_two()
 
 
-USERNAME = 'karl-thomas@zink.ee'
-PASSWORD = 'MemriseBot6969'
+USERNAME = ''
+PASSWORD = ''
 
-UNIT_NAME = '2021 P1 Insight'
-UNIT_COURSE = '2'
+UNIT_NAME = ''
+UNIT_COURSE = ''
 
 MemriseScript(USERNAME, PASSWORD, UNIT_NAME, UNIT_COURSE).run()
